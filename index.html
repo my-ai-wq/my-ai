@@ -3,146 +3,119 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My AI - Smart Assistant</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#10131c;color:white;font-family:Arial}
-header{padding:17px;background:#191f30;display:flex;justify-content:space-between;align-items:center}
-header h2{color:#a78bfa;margin:0}
-main{max-width:750px;margin:auto;padding:18px;height:85vh;display:flex;flex-direction:column}
-#welcome{text-align:center;margin:auto}
-#welcome h1{font-size:40px;color:#a78bfa}
-#messages{flex:1;overflow-y:auto}
-.msg{padding:13px;margin:12px 0;border-radius:14px;line-height:1.6;background:#252d40;white-space:pre-wrap;overflow-wrap:anywhere}
-.user{background:#513a88;margin-left:30px}
-.controls{display:flex;gap:7px;flex-wrap:wrap}
-button,select{background:#7652d5;color:white;border:0;padding:12px;border-radius:10px;cursor:pointer}
-select{background:#252d40}
-footer{display:flex;gap:8px;margin-top:12px}
-input{flex:1;min-width:0;padding:14px;border-radius:10px;border:0;background:#252d40;color:white}
+body{margin:0;background:#10131c;color:#fff;font-family:Arial,sans-serif}
+header{padding:18px;background:#191e2b;border-bottom:1px solid #303747}
+header h2{margin:0;color:#75a7ff}
+main{max-width:800px;margin:auto;padding:15px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+button{background:#28364f;color:white;border:0;padding:12px 15px;border-radius:10px;cursor:pointer}
 button:disabled{opacity:.5}
+#chat{height:62vh;overflow-y:auto;padding:8px}
+.msg{padding:13px 16px;margin:12px 0;border-radius:15px;white-space:pre-wrap;line-height:1.5;max-width:90%;overflow-wrap:anywhere}
+.user{background:#2457a6;margin-left:auto}
+.ai{background:#252c3b;margin-right:auto}
+.inputbox{display:flex;gap:8px;position:sticky;bottom:0;background:#10131c;padding:10px 0}
+input{flex:1;min-width:0;background:#252c3b;color:white;border:1px solid #47536b;padding:14px;border-radius:12px}
+#send{background:#3979e8}
+small{color:#aab5c8}
 </style>
 </head>
 <body>
 <header>
-<h2>✦ My AI</h2>
-<span>AI Assistant</span>
+<h2>✨ My AI</h2>
+<small>Your multilingual AI assistant</small>
 </header>
-
 <main>
-<div id="welcome">
-<h1>My AI ✨</h1>
-<p>Your personal AI assistant. Ask me anything!</p>
-</div>
-
-<div id="messages"></div>
-
 <div class="controls">
 <button onclick="setMode('chat')">💬 Chat</button>
-<button onclick="setMode('search')">🌐 Web Search</button>
-<button onclick="setMode('image')">🎨 Generate Image</button>
-<button onclick="voice()">🎤 Voice</button>
-<select id="voiceLang">
-<option value="en-US">English</option>
-<option value="bn-IN">Bengali</option>
-<option value="hi-IN">Hindi</option>
-<option value="ta-IN">Tamil</option>
-<option value="te-IN">Telugu</option>
-<option value="mr-IN">Marathi</option>
-<option value="gu-IN">Gujarati</option>
-<option value="ur-IN">Urdu</option>
-<option value="es-ES">Spanish</option>
-<option value="fr-FR">French</option>
-<option value="de-DE">German</option>
-<option value="ja-JP">Japanese</option>
-<option value="zh-CN">Chinese</option>
-</select>
+<button onclick="setMode('search')">🌐 Search</button>
+<button onclick="setMode('image')">🎨 Image</button>
+<button onclick="listen()">🎤 Voice</button>
+<button onclick="speakLast()">🔊 Speak</button>
 </div>
-
-<footer>
-<input id="question" placeholder="Ask My AI anything..." onkeydown="if(event.key==='Enter')send()">
-<button id="sendBtn" onclick="send()">➤</button>
-</footer>
+<small id="status">Mode: Chat</small>
+<div id="chat">
+<div class="msg ai">Hello! Welcome to My AI. Ask me anything in your language.</div>
+</div>
+<div class="inputbox">
+<input id="message" placeholder="Ask me anything..." onkeydown="if(event.key==='Enter')send()">
+<button id="send" onclick="send()">Send</button>
+</div>
 </main>
-
 <script>
+const API_URL="https://my-ai-brain.sandipgarai06369285.workers.dev";
 let mode="chat";
-
-// Add your Cloudflare Worker URL here after deployment
-const API_URL="PASTE_YOUR_WORKER_URL_HERE";
+let lastReply="";
 
 function setMode(m){
  mode=m;
- document.getElementById("question").placeholder=
- m==="chat"?"Ask My AI anything...":
- m==="search"?"Search the web...":"Describe an image...";
+ document.getElementById("status").textContent="Mode: "+m;
 }
 
-function add(text,cls){
+function addMessage(text,who){
  const d=document.createElement("div");
- d.className="msg "+cls;
+ d.className="msg "+who;
  d.textContent=text;
- const box=document.getElementById("messages");
- box.appendChild(d);
- box.scrollTop=box.scrollHeight;
+ const chat=document.getElementById("chat");
+ chat.appendChild(d);
+ chat.scrollTop=chat.scrollHeight;
 }
 
 async function send(){
- const q=document.getElementById("question");
- const value=q.value.trim();
- if(!value)return;
-
- document.getElementById("welcome").style.display="none";
- add(value,"user");
- q.value="";
-
- if(API_URL==="PASTE_YOUR_WORKER_URL_HERE"){
-  add("My AI is being connected. Please complete the Cloudflare setup first.","bot");
-  return;
- }
-
- const btn=document.getElementById("sendBtn");
+ const input=document.getElementById("message");
+ const message=input.value.trim();
+ if(!message)return;
+ input.value="";
+ addMessage(message,"user");
+ const btn=document.getElementById("send");
  btn.disabled=true;
- add("Thinking...","bot");
-
+ btn.textContent="Thinking...";
  try{
   const response=await fetch(API_URL,{
    method:"POST",
    headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({message:value,mode:mode})
+   body:JSON.stringify({message,mode})
   });
-
   const data=await response.json();
-  const box=document.getElementById("messages");
-  box.removeChild(box.lastChild);
-
   if(!response.ok)throw new Error(data.error||"Request failed");
-  add(data.reply||data.text||"No response received.","bot");
-
- }catch(error){
-  const box=document.getElementById("messages");
-  if(box.lastChild?.textContent==="Thinking...")box.removeChild(box.lastChild);
-  add("Connection error: "+error.message,"bot");
+  lastReply=data.reply||data.text||"No response";
+  addMessage(lastReply,"ai");
+ }catch(e){
+  addMessage("Error: "+e.message,"ai");
+ }finally{
+  btn.disabled=false;
+  btn.textContent="Send";
  }
- btn.disabled=false;
 }
 
-function voice(){
- const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!Speech){
-  alert("Voice recognition is not supported in this browser.");
+function listen(){
+ const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SpeechRecognition){
+  addMessage("Voice input is not supported. Try Chrome browser.","ai");
   return;
  }
- const r=new Speech();
- r.lang=document.getElementById("voiceLang").value;
- r.onresult=e=>{
-  document.getElementById("question").value=e.results[0][0].transcript;
+ const rec=new SpeechRecognition();
+ rec.lang="bn-IN";
+ rec.onresult=e=>{
+  document.getElementById("message").value=e.results[0][0].transcript;
  };
- r.onerror=()=>alert("Voice recognition failed. Please try again.");
- r.start();
+ rec.onerror=()=>addMessage("Voice recognition failed. Try again.","ai");
+ rec.start();
+}
+
+function speakLast(){
+ if(!lastReply){
+  addMessage("No AI reply to speak yet.","ai");
+  return;
+ }
+ const u=new SpeechSynthesisUtterance(lastReply);
+ u.lang="bn-IN";
+ speechSynthesis.speak(u);
 }
 </script>
 </body>
-  </html>
-  
+</html>
