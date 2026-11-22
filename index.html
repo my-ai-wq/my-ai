@@ -1,121 +1,414 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>My AI - Smart Assistant</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#10131c;color:#fff;font-family:Arial,sans-serif}
-header{padding:18px;background:#191e2b;border-bottom:1px solid #303747}
-header h2{margin:0;color:#75a7ff}
-main{max-width:800px;margin:auto;padding:15px}
-.controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-button{background:#28364f;color:white;border:0;padding:12px 15px;border-radius:10px;cursor:pointer}
-button:disabled{opacity:.5}
-#chat{height:62vh;overflow-y:auto;padding:8px}
-.msg{padding:13px 16px;margin:12px 0;border-radius:15px;white-space:pre-wrap;line-height:1.5;max-width:90%;overflow-wrap:anywhere}
-.user{background:#2457a6;margin-left:auto}
-.ai{background:#252c3b;margin-right:auto}
-.inputbox{display:flex;gap:8px;position:sticky;bottom:0;background:#10131c;padding:10px 0}
-input{flex:1;min-width:0;background:#252c3b;color:white;border:1px solid #47536b;padding:14px;border-radius:12px}
-#send{background:#3979e8}
-small{color:#aab5c8}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wes Personal AI</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --panel: #171a24;
+      --panel-2: #1f2433;
+      --text: #eef1f8;
+      --muted: #9aa3b8;
+      --accent: #5b8cff;
+      --user-bubble: #29488a;
+      --border: #2a3042;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #5b8cff, #8b5cf6);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 15px;
+      color: #fff;
+    }
+
+    .brand h1 {
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .brand p {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .clear-btn {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .clear-btn:hover {
+      background: #272d40;
+    }
+
+    #chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 920px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      max-width: 85%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      line-height: 1.55;
+      font-size: 15px;
+      word-wrap: break-word;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: var(--user-bubble);
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .role-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .message.assistant p {
+      margin-bottom: 10px;
+    }
+
+    .message.assistant p:last-child {
+      margin-bottom: 0;
+    }
+
+    .code-wrapper {
+      position: relative;
+      margin: 10px 0;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #0d1117;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #21262d;
+      color: #e6edf3;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 4px 9px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background: #30363d;
+    }
+
+    pre {
+      margin: 0;
+      padding: 14px;
+      overflow-x: auto;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13.5px;
+    }
+
+    :not(pre) > code {
+      background: var(--panel-2);
+      padding: 2px 6px;
+      border-radius: 5px;
+    }
+
+    #input-area {
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      padding: 14px 20px;
+    }
+
+    .input-box {
+      max-width: 920px;
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    textarea {
+      flex: 1;
+      resize: none;
+      min-height: 48px;
+      max-height: 180px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+    }
+
+    #send-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 0 20px;
+      height: 48px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    #send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
-<header>
-<h2>✨ My AI</h2>
-<small>Your multilingual AI assistant</small>
-</header>
-<main>
-<div class="controls">
-<button onclick="setMode('chat')">💬 Chat</button>
-<button onclick="setMode('search')">🌐 Search</button>
-<button onclick="setMode('image')">🎨 Image</button>
-<button onclick="listen()">🎤 Voice</button>
-<button onclick="speakLast()">🔊 Speak</button>
-</div>
-<small id="status">Mode: Chat</small>
-<div id="chat">
-<div class="msg ai">Hello! Welcome to My AI. Ask me anything in your language.</div>
-</div>
-<div class="inputbox">
-<input id="message" placeholder="Ask me anything..." onkeydown="if(event.key==='Enter')send()">
-<button id="send" onclick="send()">Send</button>
-</div>
-</main>
-<script>
-const API_URL="https://my-ai-brain.sandipgarai06369285.workers.dev";
-let mode="chat";
-let lastReply="";
+  <header>
+    <div class="brand">
+      <div class="brand-badge">W</div>
+      <div>
+        <h1>Wes Personal AI</h1>
+        <p>Created by Sandip</p>
+      </div>
+    </div>
+    <button class="clear-btn" id="clear-btn" type="button">New Chat</button>
+  </header>
 
-function setMode(m){
- mode=m;
- document.getElementById("status").textContent="Mode: "+m;
-}
+  <main id="chat-container">
+    <div class="message assistant">
+      <span class="role-label">Wes Personal AI</span>
+      <p>Hello! I am Wes Personal AI, created by Sandip. Ask me anything, write or debug code, or brainstorm ideas.</p>
+    </div>
+  </main>
 
-function addMessage(text,who){
- const d=document.createElement("div");
- d.className="msg "+who;
- d.textContent=text;
- const chat=document.getElementById("chat");
- chat.appendChild(d);
- chat.scrollTop=chat.scrollHeight;
-}
+  <div id="input-area">
+    <form class="input-box" id="chat-form">
+      <textarea
+        id="prompt-input"
+        placeholder="Message Wes Personal AI... (Enter to send, Shift+Enter for new line)"
+        rows="1"
+        required
+      ></textarea>
+      <button id="send-btn" type="submit">Send</button>
+    </form>
+  </div>
 
-async function send(){
- const input=document.getElementById("message");
- const message=input.value.trim();
- if(!message)return;
- input.value="";
- addMessage(message,"user");
- const btn=document.getElementById("send");
- btn.disabled=true;
- btn.textContent="Thinking...";
- try{
-  const response=await fetch(API_URL,{
-   method:"POST",
-   headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({message,mode})
-  });
-  const data=await response.json();
-  if(!response.ok)throw new Error(data.error||"Request failed");
-  lastReply=data.reply||data.text||"No response";
-  addMessage(lastReply,"ai");
- }catch(e){
-  addMessage("Error: "+e.message,"ai");
- }finally{
-  btn.disabled=false;
-  btn.textContent="Send";
- }
-}
+  <script>
+    const API_KEY = "AQ.Ab8RN6JF0470AN1py7IHxSKILiaPeHxOjDklzy1BnZC9Nhzsfg";
+    const MODEL_NAME = "gemini-2.5-flash";
 
-function listen(){
- const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SpeechRecognition){
-  addMessage("Voice input is not supported. Try Chrome browser.","ai");
-  return;
- }
- const rec=new SpeechRecognition();
- rec.lang="bn-IN";
- rec.onresult=e=>{
-  document.getElementById("message").value=e.results[0][0].transcript;
- };
- rec.onerror=()=>addMessage("Voice recognition failed. Try again.","ai");
- rec.start();
-}
+    const SYSTEM_INSTRUCTION = `
+Your name is Wes Personal AI.
+You were created and provided by Sandip.
+Always refer to yourself as Wes Personal AI and credit Sandip if asked who made or powers you.
+Never say you are "powered by Google" or mention Google unless the user explicitly asks a factual question about Google as a company or topic.
+Be helpful, clear, accurate, and strong at writing and explaining code.
+`.trim();
 
-function speakLast(){
- if(!lastReply){
-  addMessage("No AI reply to speak yet.","ai");
-  return;
- }
- const u=new SpeechSynthesisUtterance(lastReply);
- u.lang="bn-IN";
- speechSynthesis.speak(u);
-}
-</script>
+    const conversationHistory = [];
+
+    const chatContainer = document.getElementById("chat-container");
+    const chatForm = document.getElementById("chat-form");
+    const promptInput = document.getElementById("prompt-input");
+    const sendBtn = document.getElementById("send-btn");
+    const clearBtn = document.getElementById("clear-btn");
+
+    function enhanceCodeBlocks(container) {
+      container.querySelectorAll("pre code").forEach((block) => {
+        hljs.highlightElement(block);
+        const pre = block.parentElement;
+        if (pre.parentElement?.classList.contains("code-wrapper")) return;
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "code-wrapper";
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(pre);
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "copy-btn";
+        btn.textContent = "Copy";
+        btn.addEventListener("click", async () => {
+          await navigator.clipboard.writeText(block.innerText);
+          btn.textContent = "Copied!";
+          setTimeout(() => (btn.textContent = "Copy"), 1500);
+        });
+        wrapper.appendChild(btn);
+      });
+    }
+
+    function appendMessage(role, text = "") {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = `message ${role}`;
+
+      const label = document.createElement("span");
+      label.className = "role-label";
+      label.textContent = role === "user" ? "You" : "Wes Personal AI";
+
+      const body = document.createElement("div");
+      body.className = "msg-body";
+      if (role === "user") {
+        body.textContent = text;
+      } else if (text) {
+        body.innerHTML = marked.parse(text);
+        enhanceCodeBlocks(body);
+      }
+
+      msgDiv.appendChild(label);
+      msgDiv.appendChild(body);
+      chatContainer.appendChild(msgDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+      return body;
+    }
+
+    async function sendToGemini(contents) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": API_KEY,
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: SYSTEM_INSTRUCTION }],
+          },
+          contents,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error?.message || `HTTP ${response.status}`);
+      }
+
+      return (
+        data?.candidates?.[0]?.content?.parts
+          ?.map((part) => part.text || "")
+          .join("") || ""
+      );
+    }
+
+    promptInput.addEventListener("input", () => {
+      promptInput.style.height = "auto";
+      promptInput.style.height = Math.min(promptInput.scrollHeight, 180) + "px";
+    });
+
+    promptInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        chatForm.requestSubmit();
+      }
+    });
+
+    clearBtn.addEventListener("click", () => {
+      conversationHistory.length = 0;
+      location.reload();
+    });
+
+    chatForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const message = promptInput.value.trim();
+      if (!message) return;
+
+      appendMessage("user", message);
+      conversationHistory.push({
+        role: "user",
+        parts: [{ text: message }],
+      });
+
+      promptInput.value = "";
+      promptInput.style.height = "auto";
+      sendBtn.disabled = true;
+
+      const replyBody = appendMessage("assistant", "Thinking...");
+
+      try {
+        const replyText = await sendToGemini(conversationHistory);
+        conversationHistory.push({
+          role: "model",
+          parts: [{ text: replyText }],
+        });
+        replyBody.innerHTML = marked.parse(replyText);
+        enhanceCodeBlocks(replyBody);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      } catch (err) {
+        conversationHistory.pop();
+        replyBody.textContent = `Error: ${err.message || "Could not reach the API."}`;
+      } finally {
+        sendBtn.disabled = false;
+        promptInput.focus();
+      }
+    });
+  </script>
 </body>
-</html>
+ </html>
+ 
